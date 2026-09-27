@@ -3,6 +3,7 @@ services:
     image: ghcr.io/rxdy/metryx-front:latest
     container_name: metryx-front
     restart: unless-stopped
+    mem_limit: 64m
     environment:
       # Doit correspondre au PORT du service back ci-dessous : le Pi héberge
       # plusieurs services en network_mode: host qui se partagent le même
@@ -49,6 +50,7 @@ services:
     image: tecnativa/docker-socket-proxy@sha256:1f3a6f303320723d199d2316a3e82b2e2685d86c275d5e3deeaf182573b47476
     container_name: metryx-docker-proxy
     restart: unless-stopped
+    mem_limit: 64m
     environment:
       CONTAINERS: 1
       POST: 0
@@ -61,6 +63,7 @@ services:
     image: ghcr.io/rxdy/metryx-back:latest
     container_name: metryx-back
     restart: unless-stopped
+    mem_limit: 256m
     network_mode: host
     environment:
       PORT: 3011
