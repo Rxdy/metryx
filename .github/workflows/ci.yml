@@ -1,11 +1,9 @@
 name: CI
 
 on:
-  push:
-    branches: [main, dev]
-    tags: ["v*.*.*"]
+  # Tests : sur chaque PR, et appelés par images.yml avant le build qui suit une fusion dans dev
   pull_request:
-    branches: [main, dev]
+  workflow_call:
 
 jobs:
   quality:
@@ -30,53 +28,3 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
-
-  build-images:
-    name: build-images (${{ matrix.service }})
-    needs: quality
-    if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/v'))
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    strategy:
-      matrix:
-        service: [front, back]
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Compute lowercase image name
-        run: echo "IMAGE=ghcr.io/$(echo '${{ github.repository_owner }}/metryx-${{ matrix.service }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
-
-      - uses: docker/setup-qemu-action@v4
-
-      - uses: docker/setup-buildx-action@v4
-
-      - uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: docker/build-push-action@v7
-        with:
-          context: ./${{ matrix.service }}
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            ${{ env.IMAGE }}:latest
-            ${{ env.IMAGE }}:${{ github.ref_name }}
-            ${{ env.IMAGE }}:${{ github.sha }}
-
-  release:
-    name: Release GitHub
-    needs: build-images
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Release avec les notes générées depuis la version précédente
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release create "${{ github.ref_name }}" --repo "${{ github.repository }}" --title "${{ github.ref_name }}" --generate-notes --verify-tag

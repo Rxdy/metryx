@@ -1,0 +1,22 @@
+{
+  "projet": "metryx",
+  "plateformes": "linux/amd64,linux/arm64",
+  "services": {
+    "front": {
+      "image": "metryx-front",
+      "contexte": "front",
+      "dockerfile": "front/Dockerfile",
+      "sources": [
+        "front"
+      ]
+    },
+    "back": {
+      "image": "metryx-back",
+      "contexte": "back",
+      "dockerfile": "back/Dockerfile",
+      "sources": [
+        "back"
+      ]
+    }
+  }
+}
